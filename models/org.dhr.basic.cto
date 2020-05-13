@@ -1,0 +1,138 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+namespace org.dhr.basic
+
+// Concepts
+
+concept Address {
+  o String addressLine1
+  o String addressLine2 optional
+  o String city
+  o String state
+  o String country
+  o String zipcode
+}
+
+concept ContactDetails {
+  o String email
+  o String mobilePhone optional
+  o String homePhone optional
+  o Address personalAddress
+}
+
+concept BirthDetails {
+  o DateTime dob
+  o String placeOfBirth
+}
+  
+concept HospitalDetails {
+  o String hospitalId
+  o String hospitalName
+  o Address hospitalAddress
+}
+
+concept Metric {
+  o String metricName
+  o Integer value
+  o Integer desiredValueLow
+  o Integer desiredValueHigh
+}
+
+enum Gender {
+  o MALE
+  o FEMALE
+  o OTHER
+}
+
+// Participants
+
+
+abstract participant Person identified by personId {
+  o String personId
+  o String firstName
+  o String lastName
+  o Gender gender
+  o String nationality
+  o ContactDetails contactDetails
+  o BirthDetails birthDetails
+}
+
+participant Patient identified by patientId extends Person {
+  o String patientId
+  o Integer height
+  o Integer weight
+  o String bloodGroup
+  o String[] readAccess
+  o String[] writeAccess
+  o String[] procedures
+}
+
+participant Doctor identified by doctorId extends Person {
+  o String doctorId
+  o String[] qualifications
+  o String[] specialization optional
+  o String designation
+  o String department
+  o Integer experience
+  o HospitalDetails hospital
+  o DateTime joiningDate
+}
+
+// Assets
+
+asset Procedure identified by procedureId{
+  o String procedureId
+  o String procedureName
+  o String procedureDescription
+  o DateTime date
+  o Metric[] metrics optional
+  o HospitalDetails hospital
+  --> Patient owner
+  --> Doctor doctor
+}
+
+// Transactions
+
+transaction grantReadAccess{
+  --> Patient patient
+  --> Doctor doctor
+}
+  
+transaction grantRWAccess{
+  --> Patient patient
+  --> Doctor doctor
+}
+
+transaction revokeWriteAccess{
+  --> Patient patient
+  --> Doctor doctor
+}
+
+transaction revokeRWAccess{
+  --> Patient patient
+  --> Doctor doctor
+}
+
+transaction createProcedure{
+  o Procedure procedure
+}
+
+@returns(Doctor[])
+transaction viewMyDoctors{
+  --> Patient owner
+}
+
+
